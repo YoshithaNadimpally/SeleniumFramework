@@ -1,0 +1,190 @@
+package com.company.project;
+
+import com.company.project.constants.global.LogInConstants;
+import com.company.project.pages.global.LoginPage;
+import com.company.project.utilities.SeleniumUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.testng.Assert;
+import org.testng.SkipException;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+public class LoginTest {
+
+  public static Logger log = LogManager.getLogger();
+  private WebDriver driver = null;
+  private LoginPage loginPage;
+  private SeleniumUtil seleniumUtil = null;
+
+  @BeforeMethod
+  @Parameters({"url", "browser", "browserVersion", "targetRun"})
+  public void login(String url, String browser, String browserVersion, String targetRun) {
+
+    seleniumUtil = new SeleniumUtil();
+
+    // Creating driver object based on browser stack configuration
+    if (targetRun.equalsIgnoreCase("browserStack")) {
+      driver = seleniumUtil.createBrowserStackDriver(url,browser,browserVersion);
+    } else if (targetRun.equalsIgnoreCase("local")) {
+      driver = seleniumUtil.createDriver(url,browser);
+    } else {
+      log.info("Invalid `runOn` value present in testNG.xml");
+      throw new SkipException("Skipping tests");
+    }
+
+    log.info("Selenium Web Driver session initiated on -" + targetRun);
+
+    loginPage = new LoginPage(driver);
+  }
+  //POSITIVE TEST CASES
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating login page
+   */
+  @Test(priority = 1)
+  public void validateLogin() {
+
+    String preLoginURL = driver.getCurrentUrl();
+
+    log.info(driver.getTitle());
+    loginPage.sendUserName(LogInConstants.DATA_USERNAME);
+    loginPage.sendpassword(LogInConstants.DATA_PASSWORD);
+    loginPage.clickLogin();
+
+    //making sure prelogin and post login URLs are diff
+    Assert.assertNotEquals(driver.getCurrentUrl(),preLoginURL);
+    seleniumUtil.verify_Element_NotPresent(driver, By.xpath(LogInConstants.XPATH_LOGIN_BUTTON));
+
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating uppercase username
+   */
+  @Test(priority = 2)
+  public void validateUppercaseUsename(){
+
+    String preLoginURL = driver.getCurrentUrl();
+
+    loginPage.sendUserName("ADMIN");
+    loginPage.sendpassword(LogInConstants.DATA_PASSWORD);
+    loginPage.clickLogin();
+    Assert.assertNotEquals(driver.getCurrentUrl(),preLoginURL);
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating uppercase username
+   */
+  @Test(priority = 3)
+  public void validateLowercaseUsename(){
+
+    String preLoginURL = driver.getCurrentUrl();
+
+    loginPage.sendUserName("admin");
+    loginPage.sendpassword(LogInConstants.DATA_PASSWORD);
+    loginPage.clickLogin();
+    Assert.assertNotEquals(driver.getCurrentUrl(),preLoginURL);
+  }
+
+  //NEGATIVE TEST CASES
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating empty username
+   */
+
+  @Test(priority = 4)
+  public void validateEmptyUsename(){
+
+    loginPage.sendUserName("");
+    loginPage.sendpassword(LogInConstants.DATA_PASSWORD);
+    loginPage.clickLogin();
+    Assert.assertEquals(loginPage.getErrorMessage(),LogInConstants.DATA_ERRORMESSAGE_EMPTY_USERNAME);
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating empty password
+   */
+  @Test(priority = 5)
+  public void validateEmptypassword(){
+
+    loginPage.sendUserName(LogInConstants.DATA_USERNAME);
+    loginPage.sendpassword("");
+    loginPage.clickLogin();
+    Assert.assertEquals(loginPage.getErrorMessage(),LogInConstants.DATA_ERRORMESSAGE_EMPTY_PASSWORD);
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating incorrect usename
+   */
+  @Test(priority = 6)
+  public void validateIncorrectUsername(){
+
+    loginPage.sendUserName(LogInConstants.DATA_INCORRECT_USERNAME);
+    loginPage.sendpassword(LogInConstants.DATA_PASSWORD);
+    loginPage.clickLogin();
+    Assert.assertEquals(loginPage.getErrorMessage(),LogInConstants.DATA_ERRORMESSAGE_INCORRECT_USERNAME);
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating incorrect password
+   */
+  @Test(priority = 7)
+  public void validateIncorrectPassword(){
+
+    loginPage.sendUserName(LogInConstants.DATA_USERNAME);
+    loginPage.sendpassword(LogInConstants.DATA_INCORRECT_PASSWORD);
+    loginPage.clickLogin();
+    Assert.assertEquals(loginPage.getErrorMessage(),LogInConstants.DATA_ERRORMESSAGE_INCORRECT_PASSWORD);
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating incorrect password
+   */
+  @Test(priority = 8)
+  public void validateUppercasePassword(){
+
+    loginPage.sendUserName(LogInConstants.DATA_USERNAME);
+    loginPage.sendpassword("ADMIN123");
+    loginPage.clickLogin();
+    Assert.assertEquals(loginPage.getErrorMessage(),LogInConstants.DATA_ERRORMESSAGE_UPPERCASE_PASSWORD);
+  }
+
+  /**
+   * @author - Yoshitha
+   * @Date -11/14/2018
+   * @Objective -validating incorrect password
+   */
+  @Test(priority = 9)
+  public void validateIncorrectUsernamePassword(){
+
+    loginPage.sendUserName(LogInConstants.DATA_USERNAME);
+    loginPage.sendpassword("ADMIN123");
+    loginPage.clickLogin();
+    Assert.assertEquals(loginPage.getErrorMessage(),LogInConstants.DATA_ERRORMESSAGE_INCORRECT_USERNAME_PASSWORD);
+  }
+
+
+  @AfterMethod
+  public void logout() {
+    log.info("Selenium Web Driver session terminated");
+    driver.quit();
+  }
+}
