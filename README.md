@@ -33,7 +33,7 @@ This was implemented using Test-NG Listeners to handle rare UI failures.
 
 `NOTE : ALL OTHER ENVIRONMENT RELATED DETAILS SHOULD BE IN TESTNG XML's so that tests can run in any environment without any code changes`
 
-                                   `TESTS --> TESTNG XML --> GRADLE TASK --> CI`
+                                   `TESTS --> TESTNG XML --> GRADLE TASK --> CI(JENKINS/BAMBOO)`
 
 ## PROJECT STRUCTURE
 
